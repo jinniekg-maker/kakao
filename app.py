@@ -476,8 +476,6 @@ def build_fallback_screenshot_url(url: str) -> str:
 
 def render_screenshot_preview(url: str, height: int = 520) -> None:
     primary_url = build_fallback_screenshot_url(url)
-    # primary_url (WordPress MShots)가 Generating Preview... 문구를 표시할 때가 있으므로
-    # thum.io를 기본으로 사용하고 WordPress를 백업으로 전환합니다.
     fallback_url = build_screenshot_url(url)
     
     if not fallback_url:
@@ -728,7 +726,15 @@ def render_app() -> None:
 
         # 상단 페이지 네비게이션
         st.markdown(f"**📄 총 {len(preview_records)}개 URL · {total_pages}페이지**")
-        nav_cols = st.columns([1, 1] + [1] * min(total_pages, 10) + [2] if total_pages <= 10 else st.columns([1, 1, 3]))
+        
+        # 수정된 부분: 조건부 리스트 생성을 st.columns 외부에서 처리하여 에러 해결
+        if total_pages <= 10:
+            weights = [1, 1] + [1] * total_pages + [2]
+        else:
+            weights = [1, 1, 3]
+            
+        nav_cols = st.columns(weights)
+        
         if nav_cols[0].button("◀ 이전", key="nav_prev_top", disabled=current_page <= 1, use_container_width=True):
             st.session_state.url_preview_page = current_page - 1
             st.rerun()
@@ -791,10 +797,17 @@ def render_app() -> None:
                 with col2:
                     render_screenshot_preview(record.url, height=400)
 
-        # 하단 페이지 네비게이션 추가
+        # 하단 페이지 네비게이션
         if total_pages > 1:
             st.divider()
-            nav_cols_bottom = st.columns([1, 1] + [1] * min(total_pages, 10) + [2] if total_pages <= 10 else st.columns([1, 1, 3]))
+            # 수정된 부분: 상단과 동일하게 st.columns 인자 에러 해결
+            if total_pages <= 10:
+                weights_bottom = [1, 1] + [1] * total_pages + [2]
+            else:
+                weights_bottom = [1, 1, 3]
+
+            nav_cols_bottom = st.columns(weights_bottom)
+
             if nav_cols_bottom[0].button("◀ 이전", key="nav_prev_bottom", disabled=current_page <= 1, use_container_width=True):
                 st.session_state.url_preview_page = current_page - 1
                 st.rerun()
